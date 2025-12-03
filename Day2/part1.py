@@ -22,12 +22,10 @@ for (id1, id2) in ids:
         M = 10**k + 1               
         AMin = 10**(k - 1)         
         AMax = 10**k - 1           
-
         
         ALow  = math.ceil(id1 / M)
         AHigh = math.floor(id2 / M)
 
-        
         if ALow < AMin:
             ALow = AMin
         if AHigh > AMax:
@@ -36,7 +34,6 @@ for (id1, id2) in ids:
         
         if ALow > AHigh:
             continue
-
         
         for A in range(ALow, AHigh + 1):
             N = A * M
