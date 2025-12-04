@@ -1,5 +1,3 @@
-# Day 4 — check accessible paper rolls and print annotated grid for debugging
-
 # inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/example"
 inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/input"
 
