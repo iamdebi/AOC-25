@@ -1,32 +1,57 @@
+# Day 4 — check accessible paper rolls and print annotated grid for debugging
 
-inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day3/input"
-# inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day3/example"
-f = open(inputName)
+# inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/example"
+inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/input"
 
-lineNumber = 1
+with open(inputName, "r") as fh:
+    grid = [line.rstrip("\n") for line in fh]
 
-sum = 0
+print("Loaded grid (rows, varying lengths allowed):")
+for i, row in enumerate(grid):
+    print(f"{i:2}: {row}")
+print()
 
-for bank in f:
-    print("---------------------")
-    bank = bank.strip()              
-    
-    batteriesOn = []
-    remove = len(bank) - 12
-    parsedBank = [int(battery) for battery in bank]
+dirs = [
+    (-1, -1), (-1, 0), (-1, 1),
+    ( 0, -1),          ( 0, 1),
+    ( 1, -1), ( 1, 0), ( 1, 1)
+]
 
-    for battery in parsedBank:
-        while len(batteriesOn) > 0 and batteriesOn[-1] < battery and remove > 0:
-            batteriesOn.pop(-1)
-            remove -= 1
-        batteriesOn.append(battery)
+accessible_coords = []
 
-    while len(batteriesOn) > 12:
-        batteriesOn.pop(-1)
+def is_roll(r, c):
+    if r < 0 or r >= len(grid):
+        return False
+    if c < 0 or c >= len(grid[r]):
+        return False
+    return grid[r][c] == "@"
 
-    joltage = int("".join(str(battery) for battery in batteriesOn))
+for r in range(len(grid)):
+    for c in range(len(grid[r])):
+        if grid[r][c] != "@":
+            continue
 
-    sum += joltage
+        neighbor_count = 0
+        for dr, dc in dirs:
+            nr = r + dr
+            nc = c + dc
+            if is_roll(nr, nc):
+                neighbor_count += 1
 
-print(f"total sum: {sum}")
-f.close()
+        if neighbor_count < 4:
+            accessible_coords.append((r, c))
+
+annotated_rows = []
+for r in range(len(grid)):
+    row_chars = list(grid[r])
+    for c in range(len(row_chars)):
+        if (r, c) in accessible_coords:
+            row_chars[c] = "x"
+    annotated_rows.append("".join(row_chars))
+
+print("Annotated grid (x = accessible):")
+for row in annotated_rows:
+    print(row)
+print("---------------------------------------------------")
+print("Accessible coordinates (r, c):", accessible_coords)
+print("Total accessible rolls:", len(accessible_coords))
