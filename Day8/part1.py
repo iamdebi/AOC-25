@@ -1,55 +1,80 @@
-# inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/example"
-inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/input"
+import math
 
-with open(inputName, "r") as fh:
-    grid = [line.rstrip("\n") for line in fh]
+# inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day8/example"
+inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day8/input"
 
-print("Loaded grid (rows, varying lengths allowed):")
-for i, row in enumerate(grid):
-    print(f"{i:2}: {row}")
-print()
+points = []
 
-dirs = [
-    (-1, -1), (-1, 0), (-1, 1),
-    ( 0, -1),          ( 0, 1),
-    ( 1, -1), ( 1, 0), ( 1, 1)
-]
+with open(inputName) as f:
+    for line in f:
+        line = line.strip()
+        x,y,z = line.split(",")
+        points.append((int(x), int(y), int(z)))
 
-accessible_coords = []
+pairs = []
 
-def is_roll(r, c):
-    if r < 0 or r >= len(grid):
-        return False
-    if c < 0 or c >= len(grid[r]):
-        return False
-    return grid[r][c] == "@"
+for i in range(len(points)):
+    x1, y1, z1 = points[i]
+    for j in range(i + 1, len(points)):
+        x2, y2, z2 = points[j]
 
-for r in range(len(grid)):
-    for c in range(len(grid[r])):
-        if grid[r][c] != "@":
-            continue
+        dist = math.sqrt(
+            (x2 - x1) ** 2 +
+            (y2 - y1) ** 2 +
+            (z2 - z1) ** 2 
+        )
 
-        neighbor_count = 0
-        for dr, dc in dirs:
-            nr = r + dr
-            nc = c + dc
-            if is_roll(nr, nc):
-                neighbor_count += 1
+        pairs.append((dist, i, j))
 
-        if neighbor_count < 4:
-            accessible_coords.append((r, c))
+pairs.sort()
 
-annotated_rows = []
-for r in range(len(grid)):
-    row_chars = list(grid[r])
-    for c in range(len(row_chars)):
-        if (r, c) in accessible_coords:
-            row_chars[c] = "x"
-    annotated_rows.append("".join(row_chars))
+parent = []
+size = []
 
-print("Annotated grid (x = accessible):")
-for row in annotated_rows:
-    print(row)
-print("---------------------------------------------------")
-print("Accessible coordinates (r, c):", accessible_coords)
-print("Total accessible rolls:", len(accessible_coords))
+for i in range(len(points)):
+    parent.append(i)
+    size.append(1)
+
+def find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]
+        x = parent[x]
+    return x
+
+def union(a, b):
+    rootA = find(a)
+    rootB = find(b)
+
+    if rootA == rootB:
+        return
+    
+    if size[rootA] < size[rootB]:
+        parent[rootA] = rootB
+        size[rootB]+= size[rootA]
+    else:
+        parent[rootB] = rootA
+        size[rootA] += size[rootB]
+
+limit = 1000
+count = 0
+
+for dist, a, b in pairs:
+    if count == limit:
+        break
+    union(a, b)
+    count +=1
+
+circuits = {}
+
+for i in range(len(points)):
+    root = find(i)
+    if root not in circuits:
+        circuits[root] = 0
+    circuits[root] += 1
+
+size = list(circuits.values())
+size.sort(reverse=True)
+
+answer = size[0] * size[1] * size[2]
+
+print(answer)
