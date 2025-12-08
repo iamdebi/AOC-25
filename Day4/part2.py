@@ -1,6 +1,6 @@
 
-inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day3/input"
-# inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day3/example"
+inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/input"
+# inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day4/example"
 f = open(inputName)
 
 lineNumber = 1
