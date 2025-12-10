@@ -1,4 +1,5 @@
-from shapely.geometry import Polygon, box
+from PIL import Image, ImageDraw
+from shapely.geometry import Polygon
 
 # inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day9/example"
 inputName = "/Users/debbieurquhart/code_projects/AOC-25/Day9/input"
@@ -10,45 +11,58 @@ with open(inputName) as f:
         line = line.strip()
         if line == "":
             continue
+
         x, y = line.split(",")
         points.append((int(x), int(y)))
 
-# The red loop polygon
-poly = Polygon(points)
 
-maxArea = 0
+def save_polygon_png(points, output_file="day9_polygon.png"):
+    # Use Shapely to fix the polygon (correct ordering, remove self-crossings)
+    poly = Polygon(points)
 
-N = len(points)
+    # Extract the exterior ring (the valid usable outline)
+    exterior = list(poly.exterior.coords)
 
-# ----------------------------------------------------------
-# Try every pair of red tiles as opposite corners of a rectangle
-# ----------------------------------------------------------
-for i in range(N):
-    x1, y1 = points[i]
+    # Compute bounding box
+    xs = [x for x, y in exterior]
+    ys = [y for x, y in exterior]
 
-    for j in range(i + 1, N):
-        x2, y2 = points[j]
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
 
-        # Red corners must form a valid rectangle, not a line
-        if x1 == x2 or y1 == y2:
-            continue
+    img_size = 2000
+    padding = 50
 
-        left = min(x1, x2)
-        right = max(x1, x2)
-        bottom = min(y1, y2)
-        top = max(y1, y2)
+    span_x = max_x - min_x
+    span_y = max_y - min_y
 
-        # Shapely rectangle (continuous geometry)
-        rect = box(left, bottom, right, top)
+    scale_x = (img_size - 2 * padding) / span_x
+    scale_y = (img_size - 2 * padding) / span_y
+    scale = min(scale_x, scale_y)
 
-        # The rectangle must lie entirely inside the red+green region,
-        # which is exactly the interior of the polygon + its boundary.
-        if rect.within(poly) or rect.touches(poly):
-            width = (right - left + 1)
-            height = (top - bottom + 1)
-            area = width * height
+    # Create blank image
+    img = Image.new("RGB", (img_size, img_size), "white")
+    draw = ImageDraw.Draw(img)
 
-            if area > maxArea:
-                maxArea = area
+    # Convert to image coordinates (flip Y to look like a grid)
+    poly_pts = []
+    for (x, y) in exterior:
+        cx = padding + (x - min_x) * scale
+        cy = padding + (y - min_y) * scale
+        cy = img_size - cy
+        poly_pts.append((cx, cy))
 
-print("Largest area:", maxArea)
+    # Draw filled polygon with red outline
+    draw.polygon(poly_pts, fill=(200, 255, 200), outline="red")
+
+    # Draw the red vertices
+    r = 4
+    for (cx, cy) in poly_pts:
+        draw.ellipse((cx - r, cy - r, cx + r, cy + r), fill="red")
+
+    img.save(output_file)
+    print(f"Saved polygon image as: {output_file}")
+
+
+# Call the function
+save_polygon_png(points, "day9_polygon.png")
